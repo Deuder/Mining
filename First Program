@@ -1,0 +1,89 @@
+#find files
+import pandas as pd
+import glob
+
+de = True
+eng = False
+
+files = glob.glob(r"C:\Users\julia\Documents\Eigene Dokumente\Studium\4Semester\Workshop_Mining_Software_Repositories\Projekt D Skilltree\Datensammlung\Bundesagentur für Arbeit\Deutsch\*.txt")
+files += glob.glob(r"C:\Users\julia\Documents\Eigene Dokumente\Studium\4Semester\Workshop_Mining_Software_Repositories\Projekt D Skilltree\Datensammlung\XING\Deutsch\*.txt")
+print(len(files))
+
+startdfs = [0 for x in range(len(files))]
+
+#import txt files as dataframes
+for i in range(len(files)):
+    df= pd.read_csv(files[i], delimiter = "\t", header = None)
+    startdfs[i]=df
+print(startdfs)
+    
+
+#create a more sorted df
+index = []
+lang_dict = {}
+job_dict = {}
+company_dict = {}
+descr_dict = {}
+
+for j in range(len(startdfs)):
+    
+    df = startdfs[j]
+    index += [j]
+    
+    if de:
+        lang ="de"
+    elif en:
+        lang= "en"
+    lang_dict[j]= lang;
+    
+    job = df.iloc[0,0]
+    job_dict[j]= job
+    
+    company = df.iloc[1,0]
+    company_dict[j]= company;
+    
+    descr = df.iloc[2,0]
+    for i in range(3,len(df.index)):
+        descr = descr + " "+ df.iloc[i,0].strip("◾")
+    descr_dict[j] = descr
+    
+lang_series = pd.Series(lang_dict)
+job_series = pd.Series(job_dict)
+company_series = pd.Series(company_dict)
+descr_series = pd.Series(descr_dict)
+
+df = pd.DataFrame({'job':job_series, 'company':company_series, 'description':descr_series, 'language':lang_series,})
+print(df)
+
+#let the spacy magic begin ^^
+import spacy
+from spacy.tokens import Doc
+from spacy.lang.de import German
+
+nlp = spacy.load("de_core_news_sm")
+
+#fill doc with job descriptions
+desstr = ""
+for i in range(len(df)):
+    desstr =desstr +" "+ df.iloc[i,2]
+doc = nlp(desstr)
+nouns = {}
+pnouns = {}
+for token in doc:
+    if token.pos_ == "NOUN":
+        if token.text in nouns:
+            nouns[token.text] = nouns[token.text]+1
+        else:
+            nouns[token.text] = 1
+    elif token.pos_ =="PROPN":
+        if token.text in pnouns:
+            pnouns[token.text] = pnouns[token.text]+1
+        else:
+            pnouns[token.text] = 1
+noun_series = pd.Series(nouns)
+pnoun_series = pd.Series(pnouns)
+series = noun_series.append(pnoun_series)
+
+df2 =pd.DataFrame({'count':series})
+df3 = (df2.loc[df2['count'] >= 10])
+df3.to_csv(r"C:\Users\julia\Documents\Eigene Dokumente\Studium\4Semester\Workshop_Mining_Software_Repositories\Projekt D Skilltree\count3.csv", sep = ";", decimal = ",", encoding ="UTF-8")
