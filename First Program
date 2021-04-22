@@ -5,6 +5,11 @@ import glob
 de = True
 eng = False
 
+f
+s
+fafs
+
+
 files = glob.glob(r"C:\Users\julia\Documents\Eigene Dokumente\Studium\4Semester\Workshop_Mining_Software_Repositories\Projekt D Skilltree\Datensammlung\Bundesagentur für Arbeit\Deutsch\*.txt")
 files += glob.glob(r"C:\Users\julia\Documents\Eigene Dokumente\Studium\4Semester\Workshop_Mining_Software_Repositories\Projekt D Skilltree\Datensammlung\XING\Deutsch\*.txt")
 print(len(files))
